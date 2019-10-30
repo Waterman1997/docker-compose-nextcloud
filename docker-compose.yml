@@ -1,0 +1,49 @@
+version: '3.7'
+
+services:
+  db:
+    image: mariadb
+    container_name: NextCloud-MariaDB
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    restart: always
+    volumes:
+      - db:/var/lib/mysql
+    networks:
+      - NextCloud-NetWork
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+
+  redis:
+    image: redis:alpine
+    container_name: NextCloud-Redis
+    networks:
+      - NextCloud-NetWork
+    restart: always
+
+  app:
+    image: nextcloud
+    container_name: NextCloud
+    restart: always
+    volumes:
+      - nextcloud:/var/www/html
+    networks:
+      - NextCloud-NetWork
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=root
+      - REDIS_HOST=redis
+    ports:
+      - 8080:80
+    links:
+      - db
+    depends_on:
+      - db
+      - redis
+      
+volumes:
+  db:
+  nextcloud:
+networks:
+  NextCloud-NetWork:
